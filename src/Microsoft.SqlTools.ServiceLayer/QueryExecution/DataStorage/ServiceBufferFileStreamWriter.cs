@@ -24,6 +24,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
         #region Member Variables
 
         private readonly IFileStreamWrapper fileStream;
+        private readonly long maxBytesToStore;
         private readonly int maxCharsToStore;
         private readonly int maxXmlCharsToStore;
 
@@ -47,13 +48,17 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
         /// </summary>
         /// <param name="fileWrapper">The file wrapper to use as the underlying file stream</param>
         /// <param name="fileName">Name of the file to write to</param>
+        /// <param name="maxBytesToStore">
+        /// Maximum number of bytes to write to this temporary file. If this limit is hit, an
+        /// exception will be thrown.
+        /// </param>
         /// <param name="maxCharsToStore">Maximum number of characters to store for long text fields</param>
         /// <param name="maxXmlCharsToStore">Maximum number of characters to store for XML fields</param>
-        public ServiceBufferFileStreamWriter(IFileStreamWrapper fileWrapper, string fileName, int maxCharsToStore, int maxXmlCharsToStore)
+        public ServiceBufferFileStreamWriter(IFileStreamWrapper fileWrapper, string fileName, long maxBytesToStore, int maxCharsToStore, int maxXmlCharsToStore)
         {
             // open file for reading/writing
             fileStream = fileWrapper;
-            fileStream.Init(fileName, DefaultBufferLength, FileAccess.ReadWrite);
+            fileStream.Init(fileName, DefaultBufferLength, FileAccess.ReadWrite, maxBytesToStore);
 
             // create internal buffer
             byteBuffer = new byte[DefaultBufferLength];
@@ -68,6 +73,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
             floatBuffer = new float[1];
 
             // Store max chars to store
+            this.maxBytesToStore = maxBytesToStore;
             this.maxCharsToStore = maxCharsToStore;
             this.maxXmlCharsToStore = maxXmlCharsToStore;
 

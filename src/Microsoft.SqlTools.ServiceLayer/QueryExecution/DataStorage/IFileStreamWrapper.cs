@@ -13,7 +13,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
     /// </summary>
     public interface IFileStreamWrapper : IDisposable
     {
-        void Init(string fileName, int bufferSize, FileAccess fileAccessMode);
+        void Init(string fileName, int bufferSize, FileAccess fileAccessMode, long? maxFileBytes);
         int ReadData(byte[] buffer, int bytes);
         int ReadData(byte[] buffer, int bytes, long fileOffset);
         int WriteData(byte[] buffer, int bytes);

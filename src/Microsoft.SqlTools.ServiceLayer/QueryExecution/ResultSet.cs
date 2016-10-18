@@ -65,6 +65,11 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// </summary>
         private readonly string outputFileName;
 
+        /// <summary>
+        /// The total number of bytes that had been read before this result set
+        /// </summary>
+        private readonly long priorBytes;
+
         #endregion
 
         /// <summary>
@@ -72,7 +77,10 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// </summary>
         /// <param name="reader">The reader from executing a query</param>
         /// <param name="factory">Factory for creating a reader/writer</param>
-        public ResultSet(DbDataReader reader, IFileStreamFactory factory)
+        /// <param name="bytes">
+        /// Number of bytes read before this resultSet. For first resultset this should be 0
+        /// </param>
+        public ResultSet(DbDataReader reader, IFileStreamFactory factory, long bytes)
         {
             // Sanity check to make sure we got a reader
             Validate.IsNotNull(nameof(reader), SR.QueryServiceResultSetReaderNull);
@@ -82,6 +90,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             // Initialize the storage
             outputFileName = factory.CreateFile();
             FileOffsets = new LongList<long>();
+            priorBytes = bytes;
 
             // Store the factory
             fileStreamFactory = factory;
@@ -199,14 +208,15 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// Reads from the reader until there are no more results to read
         /// </summary>
         /// <param name="cancellationToken">Cancellation token for cancelling the query</param>
-        public async Task ReadResultToEnd(CancellationToken cancellationToken)
+        public async Task<long> ReadResultToEnd(CancellationToken cancellationToken)
         {
             // Mark that result has been read
             hasBeenRead = true;
             fileStreamReader = fileStreamFactory.GetReader(outputFileName);
 
             // Open a writer for the file
-            using (IFileStreamWriter fileWriter = fileStreamFactory.GetWriter(outputFileName, MaxCharsToStore, MaxXmlCharsToStore))
+            long currentFileOffset = 0;
+            using (IFileStreamWriter fileWriter = fileStreamFactory.GetWriter(outputFileName, priorBytes, MaxCharsToStore, MaxXmlCharsToStore))
             {
                 // If we can initialize the columns using the column schema, use that
                 if (!DataReader.DbDataReader.CanGetColumnSchema())
@@ -214,7 +224,6 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                     throw new InvalidOperationException(SR.QueryServiceResultSetNoColumnSchema);
                 }
                 Columns = DataReader.Columns;
-                long currentFileOffset = 0;
 
                 while (await DataReader.ReadAsync(cancellationToken))
                 {
@@ -225,6 +234,8 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             }
             // Check if resultset is 'for xml/json'. If it is, set isJson/isXml value in column metadata
             SingleColumnXmlJsonResultSet();
+
+            return priorBytes + currentFileOffset;
         }
 
         #endregion

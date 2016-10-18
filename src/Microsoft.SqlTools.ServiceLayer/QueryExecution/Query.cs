@@ -86,11 +86,11 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             });
             // NOTE: We only want to process batches that have statements (ie, ignore comments and empty lines)
             Batches = parseResult.Script.Batches.Where(b => b.Statements.Count > 0)
-                .Select(b => new Batch(b.Sql, 
-                                       b.StartLocation.LineNumber - 1, 
-                                       b.StartLocation.ColumnNumber - 1, 
-                                       b.EndLocation.LineNumber - 1, 
-                                       b.EndLocation.ColumnNumber - 1, 
+                .Select(b => new Batch(b.Sql,
+                                       b.StartLocation.LineNumber - 1,
+                                       b.StartLocation.ColumnNumber - 1,
+                                       b.EndLocation.LineNumber - 1,
+                                       b.EndLocation.ColumnNumber - 1,
                                        outputFileFactory)).ToArray();
         }
 
@@ -253,9 +253,10 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 try
                 {
                     // We need these to execute synchronously, otherwise the user will be very unhappy
+                    long writtenBytes = 0;
                     foreach (Batch b in Batches)
                     {
-                        await b.Execute(conn, cancellationSource.Token);
+                        writtenBytes = await b.Execute(conn, writtenBytes, cancellationSource.Token);
                     }
 
                     // Call the query execution callback

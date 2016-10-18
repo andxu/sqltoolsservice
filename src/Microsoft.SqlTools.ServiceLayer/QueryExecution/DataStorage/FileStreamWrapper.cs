@@ -23,6 +23,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
         private FileStream fileStream;
         private long startOffset;
         private long currentOffset;
+        private long? maxBytesToWrite;
 
         #endregion
 
@@ -49,7 +50,8 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
         /// Whether or not the wrapper will be used for reading. If <c>true</c>, any calls to a
         /// method that writes will cause an InvalidOperationException
         /// </param>
-        public void Init(string fileName, int bufferLength, FileAccess accessMethod)
+        /// <param name="maxBytes">Maximum number of bytes to write into *this* file</param>
+        public void Init(string fileName, int bufferLength, FileAccess accessMethod, long? maxBytes)
         {
             // Sanity check for valid buffer length, fileName, and accessMethod
             Validate.IsGreaterThan(nameof(bufferLength), bufferLength, 0);
@@ -61,6 +63,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
 
             // Setup the buffer
             buffer = new byte[bufferLength];
+            maxBytesToWrite = maxBytes;
 
             // Open the requested file for reading/writing, creating one if it doesn't exist
             fileStream = new FileStream(fileName, FileMode.OpenOrCreate, accessMethod, FileShare.ReadWrite,
@@ -148,6 +151,13 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
                 // adjust the current buffer pointer
                 currentOffset += bytesToCopy;
 
+                // Make sure we haven't met or exceeded the number of bytes to write
+                if (currentOffset >= maxBytesToWrite)
+                {
+                    // Flush the buffer and throw
+                    throw new Exception();
+                }
+
                 if (bytesCopied < bytes) // did not get all the bytes yet
                 {
                     Debug.Assert((int)(currentOffset - startOffset) == buffer.Length);
@@ -155,6 +165,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
                     Flush();
                 }
             }
+
             Debug.Assert(bytesCopied == bytes);
             return bytesCopied;
         }
@@ -207,10 +218,23 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
         private void GetByteCounts(int bytes, int bytesCopied, out int bufferOffset, out int bytesToCopy)
         {
             bufferOffset = (int) (currentOffset - startOffset);
-            bytesToCopy = bytes - bytesCopied;
-            if (bytesToCopy > buffer.Length - bufferOffset)
+            int bufferBytesRemaining = buffer.Length - bufferOffset;
+            long fileBytesRemaining = maxBytesToWrite - currentOffset ?? long.MaxValue;
+
+            // Determine what is the limiting factor for number of bytes to copy
+            int limitingByteCount = bufferBytesRemaining;
+            if (limitingByteCount > fileBytesRemaining)
             {
-                bytesToCopy = buffer.Length - bufferOffset;
+                // At this point, we're almost guaranteed to have less than max int bytes left in the file
+                Debug.Assert(fileBytesRemaining < int.MaxValue);
+                limitingByteCount = (int)fileBytesRemaining;
+            }
+
+            // If the number of bytes to copy exceeds this 
+            bytesToCopy = bytes - bytesCopied;
+            if (bytesToCopy > limitingByteCount)
+            {
+                bytesToCopy = limitingByteCount;
             }
         }
 

@@ -25,7 +25,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
 
         private readonly IFileStreamWrapper fileStream;
 
-        private Dictionary<Type, Func<long, FileStreamReadResult>> readMethods;
+        private readonly Dictionary<Type, Func<long, FileStreamReadResult>> readMethods;
 
         #endregion
 
@@ -38,7 +38,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
         {            
             // Open file for reading/writing
             fileStream = fileWrapper;
-            fileStream.Init(fileName, DefaultBufferSize, FileAccess.Read);
+            fileStream.Init(fileName, DefaultBufferSize, FileAccess.Read, null);
 
             // Create internal buffer
             buffer = new byte[DefaultBufferSize];

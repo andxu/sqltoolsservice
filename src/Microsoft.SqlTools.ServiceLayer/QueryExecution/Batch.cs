@@ -137,7 +137,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         {
             get
             {
-                return ResultSets.Select((set, index) => new ResultSetSummary()
+                return ResultSets.Select((set, index) => new ResultSetSummary
                 {
                     ColumnInfo = set.Columns,
                     Id = index,
@@ -160,7 +160,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// </summary>
         /// <param name="conn">The connection to use to execute the batch</param>
         /// <param name="cancellationToken">Token for cancelling the execution</param>
-        public async Task Execute(DbConnection conn, CancellationToken cancellationToken)
+        public async Task<long> Execute(DbConnection conn, long priorWrittenBytes, CancellationToken cancellationToken)
         {
             // Sanity check to make sure we haven't already run this batch
             if (HasExecuted)
@@ -170,7 +170,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
 
             try
             {
-                DbCommand command = null;
+                DbCommand command;
 
                 // Register the message listener to *this instance* of the batch
                 // Note: This is being done to associate messages with batches
@@ -212,13 +212,14 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                             }
 
                             // This resultset has results (ie, SELECT/etc queries)
-                            ResultSet resultSet = new ResultSet(reader, outputFileFactory);
-                            
+                            ResultSet resultSet = new ResultSet(reader, outputFileFactory, priorWrittenBytes);
+
                             // Add the result set to the results of the query
                             resultSets.Add(resultSet);
-                            
+
                             // Read until we hit the end of the result set
-                            await resultSet.ReadResultToEnd(cancellationToken).ConfigureAwait(false);
+                            priorWrittenBytes +=
+                                await resultSet.ReadResultToEnd(cancellationToken).ConfigureAwait(false);
 
                             // Add a message for the number of rows the query returned
                             resultMessages.Add(new ResultMessage(SR.QueryServiceAffectedRows(resultSet.RowCount)));
@@ -255,6 +256,8 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 HasExecuted = true;
                 executionEndTime = DateTime.Now;
             }
+
+            return priorWrittenBytes;
         }
 
         /// <summary>
