@@ -152,10 +152,11 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
                 currentOffset += bytesToCopy;
 
                 // Make sure we haven't met or exceeded the number of bytes to write
-                if (currentOffset >= maxBytesToWrite)
+                if (maxBytesToWrite.HasValue && currentOffset >= maxBytesToWrite)
                 {
                     // Flush the buffer and throw
-                    throw new Exception();
+                    Flush();
+                    throw new TempStorageLimitException();
                 }
 
                 if (bytesCopied < bytes) // did not get all the bytes yet

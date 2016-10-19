@@ -159,14 +159,17 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// Executes this batch and captures any server messages that are returned.
         /// </summary>
         /// <param name="conn">The connection to use to execute the batch</param>
+        /// <param name="maxBytesToWrite">The maximum number of bytes to write to this temporary storage file</param>
         /// <param name="cancellationToken">Token for cancelling the execution</param>
-        public async Task<long> Execute(DbConnection conn, long priorWrittenBytes, CancellationToken cancellationToken)
+        /// <returns>The number of bytes written to temp files for this batch</returns>
+        public async Task<long?> Execute(DbConnection conn, long? maxBytesToWrite, CancellationToken cancellationToken)
         {
             // Sanity check to make sure we haven't already run this batch
             if (HasExecuted)
             {
                 throw new InvalidOperationException("Batch has already executed.");
             }
+            long? remainingTempBytes = maxBytesToWrite;
 
             try
             {
@@ -212,14 +215,13 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                             }
 
                             // This resultset has results (ie, SELECT/etc queries)
-                            ResultSet resultSet = new ResultSet(reader, outputFileFactory, priorWrittenBytes);
+                            ResultSet resultSet = new ResultSet(reader, outputFileFactory, remainingTempBytes);
 
                             // Add the result set to the results of the query
                             resultSets.Add(resultSet);
 
                             // Read until we hit the end of the result set
-                            priorWrittenBytes +=
-                                await resultSet.ReadResultToEnd(cancellationToken).ConfigureAwait(false);
+                            remainingTempBytes -= await resultSet.ReadResultToEnd(cancellationToken).ConfigureAwait(false);
 
                             // Add a message for the number of rows the query returned
                             resultMessages.Add(new ResultMessage(SR.QueryServiceAffectedRows(resultSet.RowCount)));
@@ -235,6 +237,11 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             catch (TaskCanceledException)
             {
                 resultMessages.Add(new ResultMessage(SR.QueryServiceQueryCancelled));
+                throw;
+            }
+            catch (TempStorageLimitException)
+            {
+                resultMessages.Add(new ResultMessage(SR.QueryServiceFileWrapperStorageLimit));
                 throw;
             }
             catch (Exception e)
@@ -257,7 +264,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 executionEndTime = DateTime.Now;
             }
 
-            return priorWrittenBytes;
+            return maxBytesToWrite - remainingTempBytes;
         }
 
         /// <summary>

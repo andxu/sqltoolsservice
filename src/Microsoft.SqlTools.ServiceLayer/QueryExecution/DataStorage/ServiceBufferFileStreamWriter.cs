@@ -24,7 +24,6 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
         #region Member Variables
 
         private readonly IFileStreamWrapper fileStream;
-        private readonly long maxBytesToStore;
         private readonly int maxCharsToStore;
         private readonly int maxXmlCharsToStore;
 
@@ -54,7 +53,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
         /// </param>
         /// <param name="maxCharsToStore">Maximum number of characters to store for long text fields</param>
         /// <param name="maxXmlCharsToStore">Maximum number of characters to store for XML fields</param>
-        public ServiceBufferFileStreamWriter(IFileStreamWrapper fileWrapper, string fileName, long maxBytesToStore, int maxCharsToStore, int maxXmlCharsToStore)
+        public ServiceBufferFileStreamWriter(IFileStreamWrapper fileWrapper, string fileName, long? maxBytesToStore, int maxCharsToStore, int maxXmlCharsToStore)
         {
             // open file for reading/writing
             fileStream = fileWrapper;
@@ -73,7 +72,6 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
             floatBuffer = new float[1];
 
             // Store max chars to store
-            this.maxBytesToStore = maxBytesToStore;
             this.maxCharsToStore = maxCharsToStore;
             this.maxXmlCharsToStore = maxXmlCharsToStore;
 

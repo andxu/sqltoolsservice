@@ -245,6 +245,14 @@ namespace Microsoft.SqlTools.ServiceLayer
             }
         }
 
+        public static string QueryServiceFileWrapperStorageLimit
+        {
+            get
+            {
+                return Keys.GetString(Keys.QueryServiceFileWrapperStorageLimit);
+            }
+        }
+
         public static string QueryServiceCompletedSuccessfully
         {
             get
@@ -485,6 +493,9 @@ namespace Microsoft.SqlTools.ServiceLayer
 
 
             public const string QueryServiceFileWrapperReadOnly = "QueryServiceFileWrapperReadOnly";
+
+
+            public const string QueryServiceFileWrapperStorageLimit = "QueryServiceFileWrapperStorageLimit";
 
 
             public const string QueryServiceAffectedRows = "QueryServiceAffectedRows";

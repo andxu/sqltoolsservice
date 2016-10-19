@@ -105,6 +105,15 @@ namespace Microsoft.SqlTools.ServiceLayer {
         }
         
         /// <summary>
+        ///    Looks up a localized string similar to Connection canceled.
+        /// </summary>
+        public static string ConnectionServiceConnectionCanceled {
+            get {
+                return ResourceManager.GetString("ConnectionServiceConnectionCanceled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///    Looks up a localized string similar to Invalid value &apos;{0}&apos; for AuthenticationType.  Valid values are &apos;Integrated&apos; and &apos;SqlLogin&apos;..
         /// </summary>
         public static string ConnectionServiceConnStringInvalidAuthType {
@@ -321,6 +330,15 @@ namespace Microsoft.SqlTools.ServiceLayer {
         }
         
         /// <summary>
+        ///    Looks up a localized string similar to The results of this query exceed the configured temp storage limit. Execution has been halted and results will be partial..
+        /// </summary>
+        public static string QueryServiceFileWrapperStorageLimit {
+            get {
+                return ResourceManager.GetString("QueryServiceFileWrapperStorageLimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///    Looks up a localized string similar to Access method cannot be write-only.
         /// </summary>
         public static string QueryServiceFileWrapperWriteOnly {
@@ -335,6 +353,24 @@ namespace Microsoft.SqlTools.ServiceLayer {
         public static string QueryServiceMessageSenderNotSql {
             get {
                 return ResourceManager.GetString("QueryServiceMessageSenderNotSql", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///    Looks up a localized string similar to Query was canceled by user.
+        /// </summary>
+        public static string QueryServiceQueryCancelled {
+            get {
+                return ResourceManager.GetString("QueryServiceQueryCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///    Looks up a localized string similar to Query failed: {0}.
+        /// </summary>
+        public static string QueryServiceQueryFailed {
+            get {
+                return ResourceManager.GetString("QueryServiceQueryFailed", resourceCulture);
             }
         }
         

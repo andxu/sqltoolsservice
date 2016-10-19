@@ -12,8 +12,6 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
     /// </summary>
     public class ServiceBufferFileStreamFactory : IFileStreamFactory
     {
-        public long MaxBytesToStore { get; set; }
-
         /// <summary>
         ///  Creates a new temporary file
         /// </summary>
@@ -39,13 +37,13 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
         /// SSMS formatted buffer file
         /// </summary>
         /// <param name="fileName">The file to write values to</param>
+        /// <param name="maxBytesToWrite">The maximum number of bytes to write to temporary storage</param>
         /// <param name="maxCharsToStore">The maximum number of characters to store from long text fields</param>
         /// <param name="maxXmlCharsToStore">The maximum number of characters to store from xml fields</param>
         /// <returns>A <see cref="ServiceBufferFileStreamWriter"/></returns>
-        public IFileStreamWriter GetWriter(string fileName, long priorWrittenBytes, int maxCharsToStore, int maxXmlCharsToStore)
+        public IFileStreamWriter GetWriter(string fileName, long? maxBytesToWrite, int maxCharsToStore, int maxXmlCharsToStore)
         {
-            long bytesForThisFile = MaxBytesToStore - priorWrittenBytes;
-            return new ServiceBufferFileStreamWriter(new FileStreamWrapper(), fileName, MaxBytesToStore, maxCharsToStore, maxXmlCharsToStore);
+            return new ServiceBufferFileStreamWriter(new FileStreamWrapper(), fileName, maxBytesToWrite, maxCharsToStore, maxXmlCharsToStore);
         }
 
         /// <summary>

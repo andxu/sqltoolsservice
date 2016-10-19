@@ -245,6 +245,10 @@
     <value>This FileStreamWrapper cannot be used for writing</value>
     <comment></comment>
   </data>
+  <data name="QueryServiceFileWrapperStorageLimit" xml:space="preserve">
+    <value>The results of this query exceed the configured temp storage limit. Execution has been halted and results will be partial.</value>
+    <comment></comment>
+  </data>
   <data name="QueryServiceAffectedRows" xml:space="preserve">
     <value>({0} row(s) affected)</value>
     <comment>.

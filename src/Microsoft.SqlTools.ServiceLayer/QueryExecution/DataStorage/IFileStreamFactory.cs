@@ -10,13 +10,11 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
     /// </summary>
     public interface IFileStreamFactory
     {
-        long MaxBytesToStore { get; set; }
-
         string CreateFile();
 
         IFileStreamReader GetReader(string fileName);
 
-        IFileStreamWriter GetWriter(string fileName, long priorWrittenBytes, int maxCharsToStore, int maxXmlCharsToStore);
+        IFileStreamWriter GetWriter(string fileName, long? maxBytesToWrite, int maxCharsToStore, int maxXmlCharsToStore);
 
         void DisposeFile(string fileName);
 

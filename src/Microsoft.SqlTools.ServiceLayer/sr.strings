@@ -105,6 +105,8 @@ QueryServiceFileWrapperNotInitialized = FileStreamWrapper must be initialized be
 
 QueryServiceFileWrapperReadOnly = This FileStreamWrapper cannot be used for writing
 
+QueryServiceFileWrapperStorageLimit = The results of this query exceed the configured temp storage limit. Execution has been halted and results will be partial.
+
 ### Query Request
 
 QueryServiceAffectedRows(long rows) = ({0} row(s) affected)

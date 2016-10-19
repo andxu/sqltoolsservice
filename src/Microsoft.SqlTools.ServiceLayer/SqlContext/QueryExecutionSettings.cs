@@ -8,27 +8,13 @@ namespace Microsoft.SqlTools.ServiceLayer.SqlContext
     /// </summary>
     public class QueryExecutionSettings
     {
-        #region Constants
 
         /// <summary>
         /// Default value for batch separator (de facto standard as per SSMS)
         /// </summary>
         private const string DefaultBatchSeparator = "GO";
 
-        /// <summary>
-        /// Default value for maximum number of bytes to store in the temporary file
-        /// </summary>
-        private const long DefaultMaxTemporaryBytes = 2L*1024*1024*1024;
-
-        #endregion
-
-        #region Member Variables
-
         private string batchSeparator;
-
-        private long? maxTemporaryBytes;
-
-        #endregion
 
         #region Properties
 
@@ -42,14 +28,10 @@ namespace Microsoft.SqlTools.ServiceLayer.SqlContext
         }
 
         /// <summary>
-        /// The configured maximum number of bytes to store in the temp files, will use default if
-        /// a value was not configured.
+        /// The configured maximum number of bytes to store in the temp files, will default to null
+        /// if a value is not provided. null indicates an unlimited temp file storage.
         /// </summary>
-        public long MaxTempBytes
-        {
-            get { return maxTemporaryBytes ?? DefaultMaxTemporaryBytes; }
-            set { maxTemporaryBytes = value; }
-        }
+        public long? MaxTempBytes { get; set; }
 
         #endregion
 

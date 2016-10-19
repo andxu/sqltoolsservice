@@ -51,6 +51,8 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// </summary>
         private bool hasExecuteBeenCalled;
 
+        private long? maxBytesToStore;
+
         /// <summary>
         /// The factory to use for outputting the results of this query
         /// </summary>
@@ -78,6 +80,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             editorConnection = connection;
             cancellationSource = new CancellationTokenSource();
             outputFileFactory = outputFactory;
+            maxBytesToStore = settings.MaxTempBytes;
 
             // Process the query into batches
             ParseResult parseResult = Parser.Parse(queryText, new ParseOptions
@@ -253,10 +256,9 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 try
                 {
                     // We need these to execute synchronously, otherwise the user will be very unhappy
-                    long writtenBytes = 0;
                     foreach (Batch b in Batches)
                     {
-                        writtenBytes = await b.Execute(conn, writtenBytes, cancellationSource.Token);
+                        maxBytesToStore -= await b.Execute(conn, maxBytesToStore, cancellationSource.Token);
                     }
 
                     // Call the query execution callback
