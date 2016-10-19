@@ -113,6 +113,11 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         private LongList<long> FileOffsets { get; set; }
 
         /// <summary>
+        /// A result set is complete if all rows were read in without any interruptions
+        /// </summary>
+        public bool IsComplete { get; set; }
+
+        /// <summary>
         /// Maximum number of characters to store for a field
         /// </summary>
         public int MaxCharsToStore { get { return DefaultMaxCharsToStore; } }
@@ -226,13 +231,21 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
 
                 while (await DataReader.ReadAsync(cancellationToken))
                 {
-                    RowCount++;
-                    FileOffsets.Add(currentFileOffset);
+                    // Store the beginning of the row
+                    long rowStart = currentFileOffset;
                     currentFileOffset += fileWriter.WriteRow(DataReader);
+
+                    // Add the row to the list of rows we have only if the row was successfully written
+                    RowCount++;
+                    FileOffsets.Add(rowStart);
                 }
             }
+
             // Check if resultset is 'for xml/json'. If it is, set isJson/isXml value in column metadata
             SingleColumnXmlJsonResultSet();
+
+            // The resultset is complete
+            IsComplete = true;
 
             return currentFileOffset;
         }

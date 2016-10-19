@@ -16,6 +16,11 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts
         public int Id { get; set; }
 
         /// <summary>
+        /// Whether or not the resultset is complete
+        /// </summary>
+        public bool IsComplete { get; set; }
+
+        /// <summary>
         /// The number of rows that was returned with the resultset
         /// </summary>
         public long RowCount { get; set; }

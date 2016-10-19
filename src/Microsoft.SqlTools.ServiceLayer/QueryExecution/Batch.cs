@@ -141,6 +141,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 {
                     ColumnInfo = set.Columns,
                     Id = index,
+                    IsComplete = set.IsComplete,
                     RowCount = set.RowCount
                 }).ToArray();
             }
