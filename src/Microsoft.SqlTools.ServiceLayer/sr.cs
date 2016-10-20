@@ -245,11 +245,19 @@ namespace Microsoft.SqlTools.ServiceLayer
             }
         }
 
-        public static string QueryServiceFileWrapperStorageLimit
+        public static string QueryServiceFileWrapperStorageLimitExceeded
         {
             get
             {
-                return Keys.GetString(Keys.QueryServiceFileWrapperStorageLimit);
+                return Keys.GetString(Keys.QueryServiceFileWrapperStorageLimitExceeded);
+            }
+        }
+
+        public static string QueryServiceFileWrapperStorageLimitRange
+        {
+            get
+            {
+                return Keys.GetString(Keys.QueryServiceFileWrapperStorageLimitRange);
             }
         }
 
@@ -495,7 +503,10 @@ namespace Microsoft.SqlTools.ServiceLayer
             public const string QueryServiceFileWrapperReadOnly = "QueryServiceFileWrapperReadOnly";
 
 
-            public const string QueryServiceFileWrapperStorageLimit = "QueryServiceFileWrapperStorageLimit";
+            public const string QueryServiceFileWrapperStorageLimitExceeded = "QueryServiceFileWrapperStorageLimitExceeded";
+
+
+            public const string QueryServiceFileWrapperStorageLimitRange = "QueryServiceFileWrapperStorageLimitRange";
 
 
             public const string QueryServiceAffectedRows = "QueryServiceAffectedRows";

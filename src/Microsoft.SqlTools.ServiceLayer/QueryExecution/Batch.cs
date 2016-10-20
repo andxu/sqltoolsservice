@@ -242,7 +242,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             }
             catch (TempStorageLimitException)
             {
-                resultMessages.Add(new ResultMessage(SR.QueryServiceFileWrapperStorageLimit));
+                resultMessages.Add(new ResultMessage(SR.QueryServiceFileWrapperStorageLimitExceeded));
                 throw;
             }
             catch (Exception e)

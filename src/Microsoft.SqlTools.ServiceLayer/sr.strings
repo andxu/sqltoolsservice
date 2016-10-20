@@ -97,7 +97,7 @@ QueryServiceDataReaderCharCountInvalid = Maximum number of chars to return must 
 
 QueryServiceDataReaderXmlCountInvalid = Maximum number of XML bytes to return must be greater than zero
 
-### File Stream Wrapper Exceptions
+### File Stream Wrapper Exceptions 
 
 QueryServiceFileWrapperWriteOnly = Access method cannot be write-only
 
@@ -105,7 +105,9 @@ QueryServiceFileWrapperNotInitialized = FileStreamWrapper must be initialized be
 
 QueryServiceFileWrapperReadOnly = This FileStreamWrapper cannot be used for writing
 
-QueryServiceFileWrapperStorageLimit = The results of this query exceed the configured temp storage limit. Execution has been halted and results will be partial.
+QueryServiceFileWrapperStorageLimitExceeded = The results of this query exceed the configured temp storage limit. Execution has been halted and results will be partial.
+
+QueryServiceFileWrapperStorageLimitRange = Maximum temporary storage limit must be greater than 0
 
 ### Query Request
 

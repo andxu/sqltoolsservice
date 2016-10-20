@@ -35,7 +35,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
             // Initialize the internal state
             bufferDataSize = 0;
             startOffset = 0;
-            currentOffset = 0;            
+            currentOffset = 0;
         }
 
         #region IFileStreamWrapper Implementation
@@ -56,6 +56,10 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
             // Sanity check for valid buffer length, fileName, and accessMethod
             Validate.IsGreaterThan(nameof(bufferLength), bufferLength, 0);
             Validate.IsNotNullOrWhitespaceString(nameof(fileName), fileName);
+            if (maxBytes.HasValue && maxBytes.Value <= 0)
+            {
+                throw new ArgumentOutOfRangeException(SR.QueryServiceFileWrapperStorageLimitRange);
+            }
             if (accessMethod == FileAccess.Write)
             {
                 throw new ArgumentException(SR.QueryServiceFileWrapperWriteOnly, nameof(fileName));
