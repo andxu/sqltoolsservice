@@ -22,7 +22,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution.DataStorage
             {
                 // If:
                 // ... I write a type T to the writer
-                using (ServiceBufferFileStreamWriter writer = new ServiceBufferFileStreamWriter(mockWrapper, "abc", 10, 10))
+                using (ServiceBufferFileStreamWriter writer = new ServiceBufferFileStreamWriter(mockWrapper, "abc", null, 10, 10))
                 {
                     int writtenBytes = writeFunc(writer, value);
                     Assert.Equal(valueLength, writtenBytes);
@@ -227,7 +227,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution.DataStorage
 
             // If:
             // ... I write null as a string to the writer
-            using (ServiceBufferFileStreamWriter writer = new ServiceBufferFileStreamWriter(mockWrapper, "abc", 10, 10))
+            using (ServiceBufferFileStreamWriter writer = new ServiceBufferFileStreamWriter(mockWrapper, "abc", null, 10, 10))
             {
                 // Then:
                 // ... I should get an argument null exception
@@ -263,7 +263,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution.DataStorage
 
             // If:
             // ... I write null as a string to the writer
-            using (ServiceBufferFileStreamWriter writer = new ServiceBufferFileStreamWriter(mockWrapper, "abc", 10, 10))
+            using (ServiceBufferFileStreamWriter writer = new ServiceBufferFileStreamWriter(mockWrapper, "abc", null, 10, 10))
             {
                 // Then:
                 // ... I should get an argument null exception

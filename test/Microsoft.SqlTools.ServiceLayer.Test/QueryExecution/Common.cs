@@ -9,6 +9,7 @@ using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.SqlTools.ServiceLayer.Connection;
@@ -84,7 +85,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution
         public static Batch GetBasicExecutedBatch()
         {
             Batch batch = new Batch(StandardQuery, 0, 0, 2, 2, GetFileStreamFactory());
-            batch.Execute(CreateTestConnection(new[] {StandardTestData}, false), CancellationToken.None).Wait();
+            batch.Execute(CreateTestConnection(new[] {StandardTestData}, false), null, CancellationToken.None).Wait();
             return batch;
         }
 
@@ -99,14 +100,16 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution
 
         #region FileStreamWriteMocking 
 
-        public static IFileStreamFactory GetFileStreamFactory()
+        public static IFileStreamFactory GetFileStreamFactory(long? maxBytesToWrite = null)
         {
+            var writer = new ServiceBufferFileStreamWriter(new InMemoryWrapper(), It.IsAny<string>(), maxBytesToWrite, 1024, 1024);
+            var reader = new ServiceBufferFileStreamReader(new InMemoryWrapper(), It.IsAny<string>());
+
             Mock<IFileStreamFactory> mock = new Mock<IFileStreamFactory>();
             mock.Setup(fsf => fsf.GetReader(It.IsAny<string>()))
-                .Returns(new ServiceBufferFileStreamReader(new InMemoryWrapper(), It.IsAny<string>()));
-            mock.Setup(fsf => fsf.GetWriter(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
-                .Returns(new ServiceBufferFileStreamWriter(new InMemoryWrapper(), It.IsAny<string>(), 1024,
-                    1024));
+                .Returns(reader);
+            mock.Setup(fsf => fsf.GetWriter(It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns(writer);
 
             return mock.Object;
         }
@@ -115,6 +118,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution
         {
             private readonly byte[] storage = new byte[8192];
             private readonly MemoryStream memoryStream;
+            private long? maxBytesToWrite;
             private bool readingOnly;
 
             public InMemoryWrapper()
@@ -127,9 +131,10 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution
                 // We'll dispose this via a special method
             }
 
-            public void Init(string fileName, int bufferSize, FileAccess fAccess)
+            public void Init(string fileName, int bufferSize, FileAccess fAccess, long? maxBytes)
             {
                 readingOnly = fAccess == FileAccess.Read;
+                maxBytesToWrite = maxBytes;
             }
 
             public int ReadData(byte[] buffer, int bytes)
@@ -146,8 +151,19 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution
             public int WriteData(byte[] buffer, int bytes)
             {
                 if (readingOnly) { throw new InvalidOperationException(); }
+                if (maxBytesToWrite.HasValue && bytes > maxBytesToWrite.Value - memoryStream.Length)
+                {
+                    Debug.Assert(maxBytesToWrite.Value - memoryStream.Length < int.MaxValue);
+                    bytes = (int)(maxBytesToWrite.Value - memoryStream.Length);
+                }
+
                 memoryStream.Write(buffer, 0, bytes);
                 memoryStream.Flush();
+                if (maxBytesToWrite.HasValue && memoryStream.Length == maxBytesToWrite.Value)
+                {
+                    throw new TempStorageLimitException();
+                }
+
                 return bytes;
             }
 

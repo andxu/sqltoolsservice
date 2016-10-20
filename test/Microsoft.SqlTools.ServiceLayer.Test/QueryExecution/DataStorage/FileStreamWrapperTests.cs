@@ -26,7 +26,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution.DataStorage
             // ... It should throw an argument null exception
             using (FileStreamWrapper fsw = new FileStreamWrapper())
             {
-                Assert.Throws<ArgumentException>(() => fsw.Init(fileName, 8192, FileAccess.Read));
+                Assert.Throws<ArgumentException>(() => fsw.Init(fileName, 8192, FileAccess.Read, null));
             }
         }
 
@@ -41,7 +41,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution.DataStorage
             // ... I should throw an argument out of range exception
             using (FileStreamWrapper fsw = new FileStreamWrapper())
             {
-                Assert.Throws<ArgumentOutOfRangeException>(() => fsw.Init("validFileName", bufferLength, FileAccess.Read));
+                Assert.Throws<ArgumentOutOfRangeException>(() => fsw.Init("validFileName", bufferLength, FileAccess.Read, null));
             }
         }
 
@@ -55,7 +55,23 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution.DataStorage
             // ... I should get an invalid argument exception
             using (FileStreamWrapper fsw = new FileStreamWrapper())
             {
-                Assert.Throws<ArgumentException>(() => fsw.Init("validFileName", 8192, FileAccess.Write));
+                Assert.Throws<ArgumentException>(() => fsw.Init("validFileName", 8192, FileAccess.Write, null));
+            }
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public void InitInvalidMaxWriteBytes(long bytes)
+        {
+            // If:
+            // ... I attempt to open a file stream wrapper that is initialized with an invalid max
+            //     bytes to write
+            // Then:
+            // ... I should get an invalid argument exception
+            using (FileStreamWrapper fsw = new FileStreamWrapper())
+            {
+                Assert.Throws<ArgumentOutOfRangeException>(() => fsw.Init("validFileName", 8192, FileAccess.Read, bytes));
             }
         }
 
@@ -70,7 +86,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution.DataStorage
                 {
                     // If:
                     // ... I have a file stream wrapper that is initialized with valid parameters
-                    fsw.Init(fileName, 8192, FileAccess.ReadWrite);
+                    fsw.Init(fileName, 8192, FileAccess.ReadWrite, null);
 
                     // Then:
                     // ... The file should exist
@@ -142,7 +158,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution.DataStorage
                 byte[] buf = new byte[outBufferLength];
                 using (FileStreamWrapper fsw = new FileStreamWrapper())
                 {
-                    fsw.Init(fileName, internalBufferLength, FileAccess.Read);
+                    fsw.Init(fileName, internalBufferLength, FileAccess.Read, null);
                     bytesRead = fsw.ReadData(buf, targetBytes.Length);
                 }
 
@@ -161,12 +177,14 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution.DataStorage
         }
 
         [Theory]
-        [InlineData(1024)]  // Standard scenario
-        [InlineData(10)]    // Internal buffer too small, forces a flush
-        public void WriteData(int internalBufferLength)
+        [InlineData(1024, null)]  // Standard scenario, infinite limit
+        [InlineData(10, null)]    // Internal buffer too small, forces a flush, infinite limit
+        [InlineData(1024, 2048L)]  // Standard scenario, sufficient limit
+        [InlineData(10, 2048L)]    // Small internal buffer, sufficient limit
+        public void WriteData(int internalBufferLength, long? limit)
         {
             string fileName = Path.GetTempFileName();
-            byte[] bytesToWrite = Encoding.Unicode.GetBytes("hello");
+            byte[] bytesToWrite = Encoding.Unicode.GetBytes("hello this is a test string");
 
             try
             {
@@ -175,7 +193,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution.DataStorage
                 // ... And I write some bytes to it
                 using (FileStreamWrapper fsw = new FileStreamWrapper())
                 {
-                    fsw.Init(fileName, internalBufferLength, FileAccess.ReadWrite);
+                    fsw.Init(fileName, internalBufferLength, FileAccess.ReadWrite, null);
                     int bytesWritten = fsw.WriteData(bytesToWrite, bytesToWrite.Length);
 
                     Assert.Equal(bytesToWrite.Length, bytesWritten);
@@ -190,6 +208,35 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution.DataStorage
 
                     Assert.Equal(bytesToWrite.Length, bytesRead);   // If bytes read is not equal, then more or less of the original string was written to the file
                     Assert.True(bytesToWrite.SequenceEqual(readBackBytes.Take(bytesRead)));
+                }
+            }
+            finally
+            {
+                // Cleanup:
+                // ... Delete the test file
+                CleanupTestFile(fileName);
+            }
+        }
+
+        [Theory]
+        [InlineData(1024)]  // Standard scenario
+        [InlineData(10)]    // Small internal buffer, forces a flush
+        public void WriteDataExceedMaxLimit(int internalBufferLength)
+        {
+            string fileName = Path.GetTempFileName();
+            byte[] bytesToWrite = Encoding.Unicode.GetBytes("hello this is a test string that is far too long");
+
+            try
+            {
+                // If:
+                // ... I have a file stream that has been initialized with small max limit
+                // ... And I write too many bytes to it
+                using (FileStreamWrapper fsw = new FileStreamWrapper())
+                {
+                    // Then:
+                    // ... I should get an TempStorageLimitException exception
+                    fsw.Init(fileName, internalBufferLength, FileAccess.ReadWrite, 28);
+                    Assert.Throws<TempStorageLimitException>(() => fsw.WriteData(bytesToWrite, bytesToWrite.Length));
                 }
             }
             finally

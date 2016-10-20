@@ -56,7 +56,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution
         {
             // If I execute a query that should get no result sets
             Batch batch = new Batch(Common.StandardQuery, 0, 0, 2, 2, Common.GetFileStreamFactory());
-            batch.Execute(GetConnection(Common.CreateTestConnectionInfo(null, false)), CancellationToken.None).Wait();
+            batch.Execute(GetConnection(Common.CreateTestConnectionInfo(null, false)), null, CancellationToken.None).Wait();
 
             // Then:
             // ... It should have executed without error
@@ -86,7 +86,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution
 
             // If I execute a query that should get one result set
             Batch batch = new Batch(Common.StandardQuery, 0, 0, 2, 2, Common.GetFileStreamFactory());
-            batch.Execute(GetConnection(ci), CancellationToken.None).Wait();
+            batch.Execute(GetConnection(ci), null, CancellationToken.None).Wait();
 
             // Then:
             // ... It should have executed without error
@@ -119,7 +119,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution
 
             // If I execute a query that should get two result sets
             Batch batch = new Batch(Common.StandardQuery, 0, 0, 1, 1, Common.GetFileStreamFactory());
-            batch.Execute(GetConnection(ci), CancellationToken.None).Wait();
+            batch.Execute(GetConnection(ci), null, CancellationToken.None).Wait();
 
             // Then:
             // ... It should have executed without error
@@ -165,7 +165,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution
 
             // If I execute a batch that is invalid
             Batch batch = new Batch(Common.StandardQuery, 0, 0, 2, 2, Common.GetFileStreamFactory());
-            batch.Execute(GetConnection(ci), CancellationToken.None).Wait();
+            batch.Execute(GetConnection(ci), null, CancellationToken.None).Wait();
 
             // Then:
             // ... It should have executed with error
@@ -187,7 +187,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution
 
             // If I execute a batch
             Batch batch = new Batch(Common.StandardQuery, 0, 0, 2, 2, Common.GetFileStreamFactory());
-            batch.Execute(GetConnection(ci), CancellationToken.None).Wait();
+            batch.Execute(GetConnection(ci), null, CancellationToken.None).Wait();
 
             // Then:
             // ... It should have executed without error
@@ -198,7 +198,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.QueryExecution
             // Then:
             // ... It should throw an invalid operation exception
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                batch.Execute(GetConnection(ci), CancellationToken.None));
+                batch.Execute(GetConnection(ci), null, CancellationToken.None));
 
             // ... The data should still be available without error
             Assert.False(batch.HasError, "The batch should not be in an error condition");
